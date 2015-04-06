@@ -1,0 +1,11 @@
+# ------------------------------------------------------------------------------
+# One or more 'Backup_Configs_Folder_xxx' sections each containing a path
+# to a folder containing backup configurations.
+#
+# Example:
+# [Backup_Configs_Folder_1]
+# Folder=backup-configs
+#------------------------------------------------------------------------------
+backup_configs_folders:
+   - backup-configs
+   - backup-configs-2

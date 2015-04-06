@@ -1,0 +1,4 @@
+-r requirements.txt
+
+coverage==3.7.1
+mock==1.0.1

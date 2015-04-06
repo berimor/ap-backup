@@ -1,0 +1,28 @@
+;------------------------------------------------------------------------------
+; General section.
+;------------------------------------------------------------------------------
+[General]
+
+
+;------------------------------------------------------------------------------
+; List of network shares required to perform the backup. 
+; 
+; Every share is defined like drive=unc_path, for example:
+; N=\\aphome-nas-backup\Backups
+;------------------------------------------------------------------------------
+[RequiredNetworkShares]
+
+
+;------------------------------------------------------------------------------
+; One or more 'Backup_Configs_Folder_xxx' sections each containing a path
+; to a folder containing backup configurations or backup checker configurations. 
+; 
+; Example:
+; [Backup_Configs_Folder_1]
+; Folder=backup-configs
+;------------------------------------------------------------------------------
+[Backup_Configs_Folder_1]
+Folder=backup-configs
+
+[Backup_Configs_Folder_2]
+Folder=..\APBackup.dist\backup-configs

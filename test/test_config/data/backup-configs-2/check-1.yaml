@@ -1,0 +1,10 @@
+backup_type: checker
+
+objects:
+
+    - type: mysql
+      target_subfolder: wiki
+      target_file_name: aphome_wiki.sql
+      database: aphome_wiki
+      user: aphome_wiki
+      password: 32222312
