@@ -2,9 +2,12 @@ backup_type: checker
 
 objects:
 
-    - type: mysql
-      target_subfolder: wiki
-      target_file_name: aphome_wiki.sql
-      database: aphome_wiki
-      user: aphome_wiki
-      password: 32222312
+    - type: recent_file_exists
+      schedule: 0 1 * * *
+      backup_folder: /backup/my-backup-2
+      backup_file_name_pattern: '*.dat'
+
+    - type: compare_file_to_src
+      schedule: 0 1 * * 1
+      backup_file: /backup/my-app-backup/file-1.txt
+      src_file: /var/my-app/file-1.txt

@@ -262,14 +262,14 @@ class BackupObjectMySqlProcessor(BackupObjectProcessor) :
     """MySql backup object processor."""
            
     def __init__(self, backupCheckObject, backupChecker):       
-        super().__init__(backupCheckObject, backupChecker)
+        super(BackupObjectMySqlProcessor, self).__init__(backupCheckObject, backupChecker)
         
 
     def doBackup(self):
         targetFolder = os.path.join(self.backupProcessor.lastBackupDir, self.backupObject.targetSubfolder)
         os.makedirs(targetFolder, exist_ok=True)
         
-        targetFilePath = os.path.join(targetFolder, self.backupObject.targetFileName) 
+        targetFilePath = os.path.join(targetFolder, self.backupObject.target_file_name)
         args = ["mysqldump", "--lock-tables"]
         args += ["--opt", "--skip-extended-insert"] #disable extended (bulk) inserts
         args += ["--user={0}".format(self.backupObject.user)]
@@ -295,24 +295,24 @@ class BackupObjectSvnProcessor(BackupObjectProcessor) :
     """Subversion repository backup object processor."""
            
     def __init__(self, backupCheckObject, backupChecker):       
-        super().__init__(backupCheckObject, backupChecker)
+        super(BackupObjectSvnProcessor, self).__init__(backupCheckObject, backupChecker)
 
     def doBackup(self):
         targetFolder = os.path.join(self.backupProcessor.lastBackupDir, self.backupObject.targetSubfolder)
         os.makedirs(targetFolder, exist_ok=True)
         
         args = ["svnadmin", "hotcopy",
-                "{0}".format(self.backupObject.repositoryFolder),
+                "{0}".format(self.backupObject.repository_folder),
                 "{0}".format(targetFolder)]
 
         try :
-            self.logger.info("Backing up Subversion repository '{0}'...".format(self.backupObject.repositoryFolder))
+            self.logger.info("Backing up Subversion repository '{0}'...".format(self.backupObject.repository_folder))
             subprocess.check_call(args)
             self.logger.info("Subversion repository backup complete.")
             
         except subprocess.CalledProcessError as ex :
             raise Exception("Subversion backup for repository folder '{0}' failed with exit code {1}.".format(
-                self.backupObject.repositoryFolder, ex.returncode))
+                self.backupObject.repository_folder, ex.returncode))
 
 
 
@@ -320,23 +320,23 @@ class BackupObjectFileProcessor(BackupObjectProcessor) :
     """File backup object processor."""
            
     def __init__(self, backupCheckObject, backupChecker):       
-        super().__init__(backupCheckObject, backupChecker)
+        super(BackupObjectFileProcessor, self).__init__(backupCheckObject, backupChecker)
 
     def doBackup(self):
         targetFolder = os.path.join(self.backupProcessor.lastBackupDir, self.backupObject.targetSubfolder)
         os.makedirs(longPathPrefix + targetFolder, exist_ok=True)
 
-        srcFile = self.backupObject.srcFilePath
-        if (not os.path.isfile(longPathPrefix + srcFile)) :
-            raise Exception("Source file '" + srcFile + "' does not exist!")
+        src_file = self.backupObject.src_file_path
+        if (not os.path.isfile(longPathPrefix + src_file)) :
+            raise Exception("Source file '" + src_file + "' does not exist!")
 
-        targetFileName = self.backupObject.targetFileName
-        if (not targetFileName) :
-            targetFileName = os.path.basename(srcFile)
+        target_file_name = self.backupObject.target_file_name
+        if (not target_file_name) :
+            target_file_name = os.path.basename(src_file)
                
-        self.logger.info("Copying file '{0}' to '{1}'...".format(srcFile, targetFileName))
-        newFile = os.path.join(targetFolder, targetFileName)
-        shutil.copyfile(longPathPrefix + srcFile, longPathPrefix + newFile)
+        self.logger.info("Copying file '{0}' to '{1}'...".format(src_file, target_file_name))
+        newFile = os.path.join(targetFolder, target_file_name)
+        shutil.copyfile(longPathPrefix + src_file, longPathPrefix + newFile)
         self.logger.info("Done")
         
 
@@ -345,12 +345,12 @@ class BackupObjectFolderProcessor(BackupObjectProcessor) :
     """Folder backup object processor."""
            
     def __init__(self, backupCheckObject, backupChecker):       
-        super().__init__(backupCheckObject, backupChecker)
+        super(BackupObjectFolderProcessor, self).__init__(backupCheckObject, backupChecker)
 
     def doBackup(self):
         targetFolder = os.path.join(self.backupProcessor.lastBackupDir, self.backupObject.targetSubfolder)
 
-        srcFolder = self.backupObject.srcFolderPath
+        srcFolder = self.backupObject.src_folder_path
         if (not os.path.isdir(longPathPrefix + srcFolder)) :
             raise Exception("Source folder '" + srcFolder + "' does not exist!")
               

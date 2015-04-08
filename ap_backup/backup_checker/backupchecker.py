@@ -157,7 +157,7 @@ class BackupCheckObjectRecentFileExistsProcessor(BackupCheckObjectProcessor) :
         
 
     def doCheck(self):
-        return checkRecentFileExists(self.backupCheckObject.backupFolder, self.backupCheckObject.backupFileNamePattern, 
+        return checkRecentFileExists(self.backupCheckObject.backup_folder, self.backupCheckObject.backup_file_name_pattern,
             self.backupCheckObject.scheduleMinutes, self.backupChecker.backupConfig, self.backupChecker.logger)
 
 
@@ -172,16 +172,16 @@ class BackupCheckObjectCompareFileToSrcProcessor(BackupCheckObjectProcessor) :
         logger = self.backupChecker.logger
         
         #get src and backup file info
-        backupFile = self.backupCheckObject.backupFile
-        if (not os.path.isfile(backupFile)) :
-            raise Exception("Backup file '" + backupFile + "' does not exist!")
+        backup_file = self.backupCheckObject.backup_file
+        if (not os.path.isfile(backup_file)) :
+            raise Exception("Backup file '" + backup_file + "' does not exist!")
 
-        srcFile = self.backupCheckObject.srcFile
-        if (not os.path.isfile(srcFile)) :
-            raise Exception("Source file '" + srcFile + "' does not exist!")
+        src_file = self.backupCheckObject.src_file
+        if (not os.path.isfile(src_file)) :
+            raise Exception("Source file '" + src_file + "' does not exist!")
 
-        backupFileTime = datetime.datetime.fromtimestamp(os.path.getmtime(backupFile))
-        srcFileTime = datetime.datetime.fromtimestamp(os.path.getmtime(srcFile))
+        backupFileTime = datetime.datetime.fromtimestamp(os.path.getmtime(backup_file))
+        srcFileTime = datetime.datetime.fromtimestamp(os.path.getmtime(src_file))
         accuracyDelta = datetime.timedelta(days=self.backupChecker.backupConfig.checker_accuracy_days)
         
         #determine min time due to schedule
@@ -197,19 +197,19 @@ class BackupCheckObjectCompareFileToSrcProcessor(BackupCheckObjectProcessor) :
         
         if (minTime > backupFileTime) :
             logger.error("Backup OUT-OF-DATE: backup file '{0}' is at {1}, but must be at least {2}"
-                .format(backupFile, backupFileTime, minTime))
+                .format(backup_file, backupFileTime, minTime))
             return False
 
         return True
 
 
-def checkRecentFileExists(backupFolder, backupFileNamePattern, scheduleMinutes, backupConfig, logger) :
+def checkRecentFileExists(backup_folder, backup_file_name_pattern, scheduleMinutes, backupConfig, logger) :
     """Checks that the given folder contains at least one recent enough file with the given pattern."""
     
     currentTime = datetime.datetime.now()
 
     latestFileTime = None
-    backupFilePattern = os.path.join(backupFolder, backupFileNamePattern)
+    backupFilePattern = os.path.join(backup_folder, backup_file_name_pattern)
     existingBackups = glob.glob(backupFilePattern)
     for existingBackup in existingBackups :
         modificationTime = datetime.datetime.fromtimestamp(os.path.getmtime(existingBackup))

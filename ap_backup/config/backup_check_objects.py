@@ -1,46 +1,32 @@
+from .work_object_manager import work_object_class
+
 __author__ = 'Alexander Pikovsky'
 
 
-class BackupCheckObject :
+class BackupCheckObject(object):
     """Base class for backup checker objects."""
 
-    name = None # name of the backup object
-
-    scheduleType = None
-    scheduleFrequency = None
-    scheduleMinutes = None
-
-    def __init__(self, name, configSection):
-        self.name = name
-
-        self.scheduleType = helpers.getRequiredConfigValue(configSection, "ScheduleType")
-        self.scheduleFrequency = int(helpers.getRequiredConfigValue(configSection, "ScheduleFrequency"))
-
-        #parse min level
-        self.scheduleMinutes = ParseScheduleTypeToMinutes(self.scheduleType, name) * self.scheduleFrequency
+    def __init__(self, object_section):
+        self.schedule = object_section.schedule
 
 
+@work_object_class('recent_file_exists')
 class BackupCheckObjectRecentFileExists(BackupCheckObject) :
     """RecentFileExists backup checker object."""
 
-    backupFolder = None
-    backupFileNamePattern = None
+    def __init__(self, object_section):
+        super(BackupCheckObjectRecentFileExists, self).__init__(object_section)
 
-    def __init__(self, name, configSection):
-        super().__init__(name, configSection)
-
-        self.backupFolder = helpers.getRequiredConfigValue(configSection, "BackupFolder")
-        self.backupFileNamePattern = helpers.getRequiredConfigValue(configSection, "BackupFileNamePattern")
+        self.backup_folder = object_section.backup_folder
+        self.backup_file_name_pattern = object_section.backup_file_name_pattern
 
 
+@work_object_class('compare_file_to_src')
 class BackupCheckObjectCompareFileToSrc(BackupCheckObject) :
     """CompareFileToSrc backup checker object."""
 
-    backupFile = None
-    srcFile = None
+    def __init__(self, object_section):
+        super(BackupCheckObjectCompareFileToSrc, self).__init__(object_section)
 
-    def __init__(self, name, configSection):
-        super().__init__(name, configSection)
-
-        self.backupFile = helpers.getRequiredConfigValue(configSection, "BackupFile")
-        self.srcFile = helpers.getRequiredConfigValue(configSection, "SrcFile")
+        self.backup_file = object_section.backup_file
+        self.src_file = object_section.src_file

@@ -112,7 +112,7 @@ RepositoryFolder=D:\Projects\KeyWallet\Test\testrep
 ;
 ; - Common settings for all object types (see above).
 ; - SrcFilePath : path to the file to back up
-; - targetFileName : name of the target file (optional, source file name is used by default)
+; - target_file_name : name of the target file (optional, source file name is used by default)
 ;------------------------------------------------------------------------------
 [Backup_File_1]
 TargetSubfolder=files
