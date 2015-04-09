@@ -15,6 +15,10 @@
 #             examples on checker configurations see APBackupChecker module. 
 backup_type: archive
 
+# Folder where backup and status files will be created. The backup files will then be copied to the corresponding
+# destination folder. Default is /var/lib/ap-backup/{backup_name}.
+data_folder: /var/lib/ap-backup/backup-1
+
 #------------------------------------------------------------------------------
 # Backup destinations with schedules.
 #

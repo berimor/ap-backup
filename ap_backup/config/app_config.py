@@ -8,16 +8,17 @@ from .backup_config import BackupConfig
 class AppConfig:
     """Loads and holds application configuration."""
 
-    def __init__(self, config_dir):
-        self.config_dir = path.abspath(config_dir)
+    def __init__(self, config_file):
         self.backup_configs = None   # list of BackupConfig objects
 
-        self._read_config()
+        self._read_config(config_file)
 
-    def _read_config(self):
+    def _read_config(self, config_file):
+        config_file = path.abspath(config_file)
+        config_dir = path.dirname(config_file)
+
         #read config file
-        config_file = path.join(self.config_dir, "config.yaml")
-        if not path.exists(config_file) :
+        if not path.exists(config_file):
             raise Exception("Configuration file '{0}' does not exist.".format(config_file))
         
         with YamlProcessor(config_file) as yaml_processor:
@@ -28,7 +29,7 @@ class AppConfig:
         for backup_configs_folder in main_section.backup_configs_folders:
             #get absolute backup-configs folder
             if not path.isabs(backup_configs_folder):
-                backup_configs_folder = path.join(self.config_dir, backup_configs_folder)
+                backup_configs_folder = path.join(config_dir, backup_configs_folder)
             if not path.exists(backup_configs_folder):
                 raise Exception("Backup configurations folder '{0}' does not exist.".format(backup_configs_folder))
 

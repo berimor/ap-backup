@@ -23,6 +23,7 @@ class BackupConfig:
     BACKUP_TYPES = {BACKUP_TYPE_ARCHIVE, BACKUP_TYPE_CHECKER}
 
     DEFAULT_CHECKER_ACCURACY_DAYS = 2
+    DEFAULT_DATA_FOLDER = '/var/lib/ap-backup/{backup_name}'
 
     def __init__(self, backup_config_file):
         # backup name
@@ -57,6 +58,9 @@ class BackupConfig:
         if self.backup_type not in self.BACKUP_TYPES:
             raise ValueError("Unsupported backup type '{0}' in configuration file '{1}'."
                              .format(self.backup_type, backup_config_file))
+
+        self.data_folder = main_section.get_optional('data_folder', self.DEFAULT_DATA_FOLDER)
+        self.data_folder = self.data_folder.format(backup_name=self.name)
 
         self.checker_accuracy_days = \
             int(main_section.get_optional('checker_accuracy_days', self.DEFAULT_CHECKER_ACCURACY_DAYS))

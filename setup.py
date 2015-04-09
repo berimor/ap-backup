@@ -45,4 +45,5 @@ setup( name='ap-backup'
                    , 'Programming Language :: Python :: Implementation :: PyPy'
                    ,
                    ]
+     , scripts=[ 'scripts/ap-backup', 'scripts/ap-backup-checker' ]
      )

@@ -1,0 +1,4 @@
+#!/usr/local/bin/python
+
+from ap_backup.backup import backup_main
+backup_main()

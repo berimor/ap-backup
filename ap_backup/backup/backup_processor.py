@@ -1,8 +1,3 @@
-'''
-Created on 14.06.2012
-
-@author: Alexander Pikovsky
-'''
 import os
 import datetime
 import shutil
@@ -59,9 +54,9 @@ def runBackup(backupDir) :
         updatedConfigs = 0
         upToDateConfigs = 0
         failedConfigs = 0
-        for backupConfig in config.backupConfigs :
+        for backup_config in config.backup_configs:
             try :
-                backupProcessor = apbackup.backupprocessor.BackupProcessor(backupConfig, config)
+                backupProcessor = apbackup.backupprocessor.BackupProcessor(backup_config, config)
                 updatedDestinations = backupProcessor.process()
                 if (updatedDestinations > 0) :
                     updatedConfigs += 1 
@@ -69,7 +64,7 @@ def runBackup(backupDir) :
                     upToDateConfigs += 1
             
             except Exception as ex:
-                logger.critical(LOG.Msg("BackupException", backupConfig.name, str(ex)), exc_info=True)
+                logger.critical(LOG.Msg("BackupException", backup_config.name, str(ex)), exc_info=True)
                 failedConfigs += 1
     
         #complete
@@ -94,9 +89,9 @@ class BackupProcessor :
     
     logger = logging.getLogger('protocol')
     
-    backupConfig = None
+    backup_config = None
     config = None
-    lastBackupStatus = None
+    last_backup_status = None
 
     #directory in which last backup files are placed and from where they are then archived
     lastBackupDir = None
@@ -104,16 +99,16 @@ class BackupProcessor :
     #last backup archive file
     lastBackupArchiveFile = None
     
-    def __init__(self, backupConfig, config):
+    def __init__(self, backup_config, config):
         self.config = config
-        self.backupConfig = backupConfig
+        self.backup_config = backup_config
         
         
     def process(self) :
         """Processes the given backup configuration (makes backup).
            Returns the number of updated destinations (0 if nothing updated)."""
         
-        self.logger.info("Processing backup '{0}'...".format(self.backupConfig.name))
+        self.logger.info("Processing backup '{0}'...".format(self.backup_config.name))
         currentTime = datetime.datetime.now()
 
         #read last backup status
@@ -121,28 +116,28 @@ class BackupProcessor :
 
         #enumerate destinations and decide which must be updated
         destinationsToUpdate = []
-        for destination in self.backupConfig.destinations :
-            destinationStatus = self.lastBackupStatus.get(destination.name)
-            if (self.isBackupRequiredForDestination(destination, destinationStatus, currentTime)) :            
+        for destination in self.backup_config.destinations :
+            destination_status = self.last_backup_status.get(destination.name)
+            if (self.isBackupRequiredForDestination(destination, destination_status, currentTime)) :
                 destinationsToUpdate.append(destination)
         
         #if no destinations have to be updated we are complete
         if (len(destinationsToUpdate) == 0) :
-            self.logger.info("Backup '{0}' skipped: all destinations up-to-date.".format(self.backupConfig.name))
+            self.logger.info("Backup '{0}' skipped: all destinations up-to-date.".format(self.backup_config.name))
             return 0
 
         ##update destination statuses
         for destination in destinationsToUpdate :
-            destinationStatus = self.lastBackupStatus.get(destination.name)
-            destinationStatus.lastBackupAttemptTime = currentTime
-            destinationStatus.lastBackupResult = "NotFinished"
+            destination_status = self.last_backup_status.get(destination.name)
+            destination_status.last_backup_attempt_time = currentTime
+            destination_status.last_backup_result = "NotFinished"
             
         self.saveLastBackupStatus()
 
         self.logger.info("Preparing folders...")
         
         #ensure backup dir exists
-        backupDir = os.path.join(self.config.configDir, backupsSubdir, self.backupConfig.name)
+        backupDir = os.path.join(self.config.configDir, backupsSubdir, self.backup_config.name)
         os.makedirs(backupDir, exist_ok=True)
  
         #remove last archive
@@ -172,7 +167,7 @@ class BackupProcessor :
 
         #create backup object processors
         backupObjectProcessors = []
-        for backupObject in self.backupConfig.backupObjects :
+        for backupObject in self.backup_config.backupObjects :
             if (isinstance(backupObject, apbackup.config.BackupObjectMySql)):
                 backupObjectProcessors.append(BackupObjectMySqlProcessor(backupObject, self))
             elif (isinstance(backupObject, apbackup.config.BackupObjectSvn)):
@@ -202,41 +197,41 @@ class BackupProcessor :
             
             #multi-copy archive
             apbackup.multicopy.multiCopy(self.lastBackupArchiveFile, destination.folder,
-                numCopies=destination.numCopies, targetBaseName=self.backupConfig.name,
+                numCopies=destination.numCopies, targetBaseName=self.backup_config.name,
                 minPeriodDays=0, appendTime=True, ignoreErrors=False, logger=self.logger);
 
             #update destination status
-            destinationStatus = self.lastBackupStatus.get(destination.name)
-            destinationStatus.lastSuccessfulBackupTime = currentTime
-            destinationStatus.lastBackupResult = "Successful"
+            destination_status = self.last_backup_status.get(destination.name)
+            destination_status.last_successful_backup_time = currentTime
+            destination_status.last_backup_result = "Successful"
 
         #save last backup status
         self.saveLastBackupStatus()
     
         self.logger.info("Backup '{0}' complete: {1} destinations updated.".
-               format(self.backupConfig.name, len(destinationsToUpdate)))
+               format(self.backup_config.name, len(destinationsToUpdate)))
         return len(destinationsToUpdate)
     
     def loadLastBackupStatus(self) :
-        """Reads last backup status to self.lastBackupStatus."""
+        """Reads last backup status to self.last_backup_status."""
         
         #ensure statuses dir exists
-        statusDir = os.path.join(self.config.configDir, statusesSubdir)
-        os.makedirs(statusDir, exist_ok=True)
+        status_dir = os.path.join(self.config.configDir, statusesSubdir)
+        os.makedirs(status_dir, exist_ok=True)
 
         #read last backup status file file
-        self.lastBackupStatus = apbackup.backupstatus.BackupStatus(self.backupConfig.name, statusDir)
+        self.last_backup_status = apbackup.backupstatus.BackupStatus(self.backup_config.name, status_dir)
 
     def saveLastBackupStatus(self) :
-        """Saves last backup status from self.lastBackupStatus."""
-        self.lastBackupStatus.save()
+        """Saves last backup status from self.last_backup_status."""
+        self.last_backup_status.save()
 
-    def isBackupRequiredForDestination(self, destination, destinationStatus, currentTime) :
+    def isBackupRequiredForDestination(self, destination, destination_status, currentTime) :
         """Determines whether update is required for the given destination."""
-        if (not destinationStatus.lastSuccessfulBackupTime) :
+        if (not destination_status.last_successful_backup_time) :
             return True    #no backup done yet
         
-        timeDiff = currentTime - destinationStatus.lastSuccessfulBackupTime
+        timeDiff = currentTime - destination_status.last_successful_backup_time
         return (timeDiff > datetime.timedelta(minutes=destination.scheduleMinutes))
     
 

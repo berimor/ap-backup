@@ -1,1 +1,1 @@
-__author__ = 'Alexander Pikovsky'
+from backup import backup_main
