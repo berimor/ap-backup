@@ -185,9 +185,9 @@ class BackupCheckObjectCompareFileToSrcProcessor(BackupCheckObjectProcessor) :
         accuracyDelta = datetime.timedelta(days=self.backupChecker.backup_config.checker_accuracy_days)
         
         #determine min time due to schedule
-        currentTime = datetime.datetime.now()
+        current_time = datetime.datetime.now()
         maxScheduleDiff = datetime.timedelta(minutes=self.backupCheckObject.scheduleMinutes) + accuracyDelta
-        minScheduleTime = currentTime - maxScheduleDiff
+        minScheduleTime = current_time - maxScheduleDiff
 
         #determine min time due to source file
         minSrcTime = srcFileTime
@@ -206,7 +206,7 @@ class BackupCheckObjectCompareFileToSrcProcessor(BackupCheckObjectProcessor) :
 def checkRecentFileExists(backup_folder, backup_file_name_pattern, scheduleMinutes, backup_config, logger) :
     """Checks that the given folder contains at least one recent enough file with the given pattern."""
     
-    currentTime = datetime.datetime.now()
+    current_time = datetime.datetime.now()
 
     latestFileTime = None
     backupFilePattern = os.path.join(backup_folder, backup_file_name_pattern)
@@ -223,7 +223,7 @@ def checkRecentFileExists(backup_folder, backup_file_name_pattern, scheduleMinut
     
     accuracyDelta = datetime.timedelta(days=backup_config.checker_accuracy_days)
     maxDiff = datetime.timedelta(minutes=scheduleMinutes) + accuracyDelta
-    minTime = currentTime - maxDiff
+    minTime = current_time - maxDiff
     if (minTime > latestFileTime) :
         logger.error("Backup OUT-OF-DATE: last backup for '{0}' found at {1}, but must be at least {2}"
                           .format(backupFilePattern, latestFileTime, minTime))

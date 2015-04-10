@@ -19,7 +19,7 @@ class WorkObjectManager(object):
         another_class = self._object_classes.get(object_type)
         if another_class and another_class.__name__ != object_class.__name__:
             raise Exception(
-                "Cannot register backup object class '{0}' for type name '{1}', since another class "
+                "Cannot register work object class '{0}' for type name '{1}', since another class "
                 "'{2}' is registered for the same object type."
                 .format(object_class.__name__, object_type, another_class.__name__))
 
@@ -35,10 +35,11 @@ class WorkObjectManager(object):
 
         object_type = object_section.type
         object_class = self._object_classes.get(object_type, None)
+        # noinspection PyCallingNonCallable
         return object_class(object_section) if object_class else None
 
 
-#initialize the global instance of the workflow config
+#initialize the global instance
 work_object_manager = WorkObjectManager()
 
 
@@ -48,7 +49,7 @@ class work_object_class(object):
     Decorator to register a class in the work_object_manager.
 
     Decorator parameters:
-    - object_type: backup object type
+    - object_type: work object type name
     """
 
     def __init__(self, object_type):

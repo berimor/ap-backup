@@ -47,25 +47,6 @@ Message={0}{1}
 ;User-defined messages
 ;------------------------------------
 
-[BackupStarted]
-EventId=1001
-Message=Backup started for configuration '{0}'.
-
-[BackupComplete]
-EventId=1002
-Message=Backup finished for configuration '{0}': {1} backups updated, {2} skipped (up-to-date).
-
-[BackupCompleteWithFailures]
-EventId=1003
-Message=Backup (partially) failed for configuration '{0}': {1} backups failed, {2} updated, {3} skipped (up-to-date).
-
-[BackupException]
-EventId=1004
-Message=Backup '{0}' failed: {1}{2}
-
-
-
-
 [BackupCheckerStarted]
 EventId=2001
 Message=Backup checker started for configuration '{0}'.
