@@ -1,4 +1,4 @@
 #!/usr/local/bin/python
 
-from ap_backup.backup_checker import backup_checker_main
+from ap_backup.scripts import backup_checker_main
 backup_checker_main()

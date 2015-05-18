@@ -32,6 +32,9 @@ class BackupConfig:
         # backup type (see BACKUP_TYPE_xxx constants)
         self.backup_type = None
 
+        #folder where backup and status files will are located
+        self.data_folder = None
+
         # Number of days ignored by the backup checker. Only relevant for backup checker configs.
         # Optional, default is DEFAULT_CHECKER_ACCURACY_DAYS.
         self.checker_accuracy_days = None

@@ -42,7 +42,7 @@ class BackupStatus(object):
                 data = yaml.load(in_file)
                 self.deserialize(data)
 
-    def get_destination_status(self, destination_name):
+    def get_or_create_destination_status(self, destination_name):
         """Gets status for the given destination or creates one (and adds to map) if does not exist."""
         destination_status = self.destination_statuses.get(destination_name)
         if not destination_status:
@@ -54,18 +54,20 @@ class BackupStatus(object):
     def save(self):
         data = self.serialize()
         with open(self.get_file_path(), 'w') as out_file:
-            out_file.write(yaml.dump(data, default_flow_style=True))
+            out_file.write(yaml.safe_dump(data, default_flow_style=False))
 
     def deserialize(self, data):
         self.destination_statuses = {}
-        for destination_name, destination_status_data in data.destination_statuses.iteritems():
+        for destination_name, destination_status_data in data['destination_statuses'].iteritems():
             destination_status = DestinationStatus(destination_name)
             destination_status.deserialize(destination_status_data)
             self.destination_statuses[destination_name] = destination_status
 
     def serialize(self):
-        data = {}
+        data = {'destination_statuses': {}}
+
+        destination_statuses = data['destination_statuses']
         for destination_name, destination_status in self.destination_statuses.iteritems():
-            data[destination_name] = destination_status.serialize()
+            destination_statuses[destination_name] = destination_status.serialize()
 
         return data

@@ -25,14 +25,14 @@ def backup_main():
         parser.print_help()
         sys.exit()
 
-    reporter = Reporter()
+    reporter = Reporter(logger_name='summary')
     reporter.info("Starting backup.", separator=True)
 
     #load config
     reporter.info("Loading application configuration file '{0}'...".format(args.config), separator=True)
-    config = AppConfig(args.config)
+    app_config = AppConfig(args.config)
     reporter.info("Application configuration file loaded successfully, {0} backup configuration(s) found."
-                        .format(len(config.backup_configs)))
+                        .format(len(app_config.backup_configs)))
 
     #process backup configs
     try:
@@ -40,9 +40,9 @@ def backup_main():
         updated_configs = 0
         up_to_date_configs = 0
         failed_configs = 0
-        for backup_config in config.backup_configs:
+        for backup_config in app_config.backup_configs:
             try:
-                backup_processor = BackupProcessor(config, backup_config, reporter)
+                backup_processor = BackupProcessor(app_config, backup_config, reporter)
                 updated_destinations = backup_processor.process()
                 if updated_destinations > 0:
                     updated_configs += 1
