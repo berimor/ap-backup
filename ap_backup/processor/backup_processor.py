@@ -1,6 +1,7 @@
 from datetime import datetime
 from os import path
 import os
+import shutil
 from croniter import croniter
 from shutil import rmtree
 
@@ -29,12 +30,12 @@ class BackupProcessor(object):
            Returns the number of updated destinations (0 if nothing updated)."""
         
         self.reporter.info("Processing backup '{0}'...".format(self.backup_config.name), separator=True)
-        now = datetime.now()
+        backup_time = datetime.now()
 
         self._init_data_folder()
         self._load_last_backup_status()
 
-        destinations_to_update = self._prepare_destinations_to_update(now)
+        destinations_to_update = self._prepare_destinations_to_update(backup_time)
         if not destinations_to_update:
             self.reporter.info("Backup '{0}' skipped: all destinations up-to-date.".format(self.backup_config.name))
             return 0
@@ -42,24 +43,24 @@ class BackupProcessor(object):
         self.reporter.info("Preparing folders...")
         self._prepare_folders()
 
-        self.logger.info("Processing objects...")
-        self._process_objects()
+        self.reporter.info("Processing objects...")
+        #self._process_objects()
 
         #create archive       
-        self.logger.info("Creating archive '{0}'...".format(self.last_backup_archive_file))
+        self.reporter.info("Creating archive '{0}'...".format(self.last_backup_archive_file))
         self._create_archive()
 
         #process destinations
-        self.logger.info("Copying archive to destinations...")
-        self._copy_archive_to_destinations(destinations_to_update)
+        self.reporter.info("Copying archive to destinations...")
+        self._copy_archive_to_destinations(destinations_to_update, backup_time)
 
-        self.logger.info("Backup '{0}' complete: {1} destinations updated."
-                         .format(self.backup_config.name, len(destinations_to_update)))
+        self.reporter.info("Backup '{0}' complete: {1} destinations updated."
+                           .format(self.backup_config.name, len(destinations_to_update)))
         return len(destinations_to_update)
 
     def _init_data_folder(self):
         self.data_folder = self.backup_config.data_folder
-        if not os.path.exists(self.data_folder):
+        if not path.exists(self.data_folder):
             os.makedirs(self.data_folder)
 
     def _load_last_backup_status(self):
@@ -80,19 +81,19 @@ class BackupProcessor(object):
         prev_trigger = croniter(destination.schedule, now).get_prev(datetime)
         return prev_trigger > destination_status.last_successful_backup_time
 
-    def _prepare_destinations_to_update(self, now):
+    def _prepare_destinations_to_update(self, backup_time):
 
         #enumerate destinations and decide which must be updated
         destinations_to_update = []
         for destination in self.backup_config.destination_by_name.values():
-            if self.is_backup_expired_for_destination(destination, now):
+            if self.is_backup_expired_for_destination(destination, backup_time):
                 destinations_to_update.append(destination)
 
         #if no destinations have to be updated we are complete, otherwise update destination statuses
         if destinations_to_update:
             for destination in destinations_to_update:
                 destination_status = self.last_backup_status.get_or_create_destination_status(destination.name)
-                destination_status.last_backup_attempt_time = now
+                destination_status.last_backup_attempt_time = backup_time
                 destination_status.last_backup_result = "not_finished"
 
             self._save_last_backup_status()
@@ -140,23 +141,25 @@ class BackupProcessor(object):
             backupObjectProcessor.doBackup()
 
     def _create_archive(self):
-        apgeneral.ziputils.zipdir(longPathPrefix + self.last_backup_folder, self.last_backup_archive_file, includeDirInZip=False)
+        archive_base_name, archive_ext = os.path.splitext(self.last_backup_archive_file)
+        archive_format = archive_ext[1:]
+        shutil.make_archive(archive_base_name, archive_format, self.last_backup_folder)
 
-    def _copy_archive_to_destinations(self, destinations_to_update):
+    def _copy_archive_to_destinations(self, destinations_to_update, backup_time):
         for destination in destinations_to_update:
             #create destination dir if does not exist
-            if (not os.path.exists(destination.folder)) :
-                os.makedirs(destination.folder, exist_ok=True)
+            if not path.exists(destination.folder):
+                os.makedirs(destination.folder)
 
             #multi-copy archive
             apbackup.multicopy.multiCopy(self.last_backup_archive_file, destination.folder,
-                numCopies=destination.numCopies, targetBaseName=self.backup_config.name,
-                minPeriodDays=0, appendTime=True, ignoreErrors=False, logger=self.logger);
+                num_copies=destination.num_copies, target_base_name=self.backup_config.name,
+                min_period_days=0, append_time=True, ignore_errors=False, logger=self.logger);
 
             #update destination status
-            destination_status = self.last_backup_status.get(destination.name)
-            destination_status.last_successful_backup_time = now
-            destination_status.last_backup_result = "Successful"
+            destination_status = self.last_backup_status.get_or_create_destination_status(destination.name)
+            destination_status.last_successful_backup_time = backup_time
+            destination_status.last_backup_result = "succeded"
 
         #save last backup status
         self._save_last_backup_status()
