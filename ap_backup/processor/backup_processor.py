@@ -5,6 +5,8 @@ import shutil
 from croniter import croniter
 from shutil import rmtree
 
+from ap_backup.multicopy import multicopy
+
 from .backup_status import BackupStatus
 
 
@@ -152,9 +154,9 @@ class BackupProcessor(object):
                 os.makedirs(destination.folder)
 
             #multi-copy archive
-            apbackup.multicopy.multiCopy(self.last_backup_archive_file, destination.folder,
-                num_copies=destination.num_copies, target_base_name=self.backup_config.name,
-                min_period_days=0, append_time=True, ignore_errors=False, logger=self.logger);
+            multicopy(self.last_backup_archive_file, destination.folder,
+                      num_copies=destination.num_copies, target_base_name=self.backup_config.name,
+                      min_period_days=0, append_time=True, ignore_errors=False, reporter=self.reporter);
 
             #update destination status
             destination_status = self.last_backup_status.get_or_create_destination_status(destination.name)

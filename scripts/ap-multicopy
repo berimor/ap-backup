@@ -1,0 +1,4 @@
+#!/usr/local/bin/python
+
+from ap_backup.scripts import multicopy_main
+multicopy_main()
