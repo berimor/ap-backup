@@ -26,17 +26,19 @@ class WorkObjectProcessorManager(object):
         #register
         self._processor_classes[work_object_class] = processor_class
 
-    def create_processor(self, work_object):
+    def create_processor(self, work_object, backup_processor):
         """
         Creates backup object for the given configuration section.
 
+        :param work_object: work object to process
+        :param backup_processor: parent backup processor
         :returns: importer instance; None if type not registered
         """
 
         work_object_class = type(work_object)
         processor_class = self._processor_classes.get(work_object_class, None)
         # noinspection PyCallingNonCallable
-        return processor_class(work_object) if processor_class else None
+        return processor_class(work_object, backup_processor) if processor_class else None
 
 
 #initialize the global instance

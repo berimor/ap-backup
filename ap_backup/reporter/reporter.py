@@ -15,7 +15,7 @@ class Reporter(object):
         self.logger = getLogger(logger_name)
 
     def _init_logger(self):
-        """Initializes backup logger."""
+        """Initializes backup reporter."""
         package_dir = path.abspath(path.join(path.dirname(__file__), '..'))
         config_file = path.join(package_dir, "logging.conf")
 

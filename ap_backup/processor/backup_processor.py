@@ -8,6 +8,11 @@ from shutil import rmtree
 from ap_backup.multicopy import multicopy
 
 from .backup_status import BackupStatus
+from .work_object_processor_manager import work_object_processor_manager
+
+# Import all work object processor classes, this will register them in work_object_processor_manager
+# noinspection PyUnresolvedReferences
+from .work_object_processors import BackupObjectProcessor
 
 
 class BackupProcessor(object):
@@ -46,7 +51,7 @@ class BackupProcessor(object):
         self._prepare_folders()
 
         self.reporter.info("Processing objects...")
-        #self._process_objects()
+        self._process_objects()
 
         #create archive       
         self.reporter.info("Creating archive '{0}'...".format(self.last_backup_archive_file))
@@ -125,22 +130,12 @@ class BackupProcessor(object):
     def _process_objects(self):
 
         #create backup object processors
-        backupObjectProcessors = []
-        for backupObject in self.backup_config.backupObjects :
-            if (isinstance(backupObject, apbackup.config.BackupObjectMySql)):
-                backupObjectProcessors.append(BackupObjectMySqlProcessor(backupObject, self))
-            elif (isinstance(backupObject, apbackup.config.BackupObjectSvn)):
-                backupObjectProcessors.append(BackupObjectSvnProcessor(backupObject, self))
-            elif (isinstance(backupObject, apbackup.config.BackupObjectFile)):
-                backupObjectProcessors.append(BackupObjectFileProcessor(backupObject, self))
-            elif (isinstance(backupObject, apbackup.config.BackupObjectFolder)):
-                backupObjectProcessors.append(BackupObjectFolderProcessor(backupObject, self))
-            else :
-                raise Exception("Unsupported backup object.")
+        for work_object in self.backup_config.work_objects:
+            object_processor = work_object_processor_manager.create_processor(work_object, self)
+            if not object_processor:
+                raise Exception("Unsupported backup object type '{0}'.".format(type(work_object).__name__))
 
-        #process backup objects
-        for backupObjectProcessor in backupObjectProcessors :
-            backupObjectProcessor.doBackup()
+            object_processor.process()
 
     def _create_archive(self):
         archive_base_name, archive_ext = os.path.splitext(self.last_backup_archive_file)
@@ -156,7 +151,7 @@ class BackupProcessor(object):
             #multi-copy archive
             multicopy(self.last_backup_archive_file, destination.folder,
                       num_copies=destination.num_copies, target_base_name=self.backup_config.name,
-                      min_period_days=0, append_time=True, ignore_errors=False, reporter=self.reporter);
+                      min_period_days=0, append_time=True, ignore_errors=False, reporter=self.reporter)
 
             #update destination status
             destination_status = self.last_backup_status.get_or_create_destination_status(destination.name)
