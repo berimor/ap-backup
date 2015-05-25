@@ -22,6 +22,7 @@ class BackupObjectMySql(BackupObject):
         self.database = object_section.database
         self.user = object_section.user
         self.password = object_section.password
+        self.host = object_section.get_optional('host', None)
         self.port = object_section.get_optional('port', None)
 
 

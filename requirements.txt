@@ -1,6 +1,7 @@
 croniter==0.3.4
 isodate==0.5.0
 PyYAML==3.10
+sh==1.11
 
 -e git+https://github.com/berimor/ap-utils.git@master#egg=ap-utils
 

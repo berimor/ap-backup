@@ -1,5 +1,6 @@
 from os import path
 import glob
+import os
 from ap_utils.yaml_processor import YamlProcessor
 
 from .backup_config import BackupConfig
@@ -12,6 +13,10 @@ class AppConfig:
         self.backup_configs = None   # list of BackupConfig objects
 
         self._read_config(config_file)
+
+        #extend PATH
+        path_env = os.getenv('PATH', '')
+        os.environ['PATH'] = path_env+':/usr/local/bin'
 
     def _read_config(self, config_file):
         config_file = path.abspath(config_file)

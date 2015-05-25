@@ -1,9 +1,12 @@
 from abc import abstractmethod, ABCMeta
 import os
+import sh
 import shutil
 import subprocess
-from ap_backup.config import BackupObjectFile, BackupObjectFolder
-from ap_backup.processor.work_object_processor_manager import work_object_processor_class
+
+from ap_backup.config import BackupObjectFile, BackupObjectFolder, BackupObjectMySql, BackupObjectSvn
+
+from .work_object_processor_manager import work_object_processor_class
 
 
 class BackupObjectProcessor(object):
@@ -30,65 +33,11 @@ class BackupObjectProcessor(object):
         raise Exception("This method must be overridden.")
 
 
-class BackupObjectMySqlProcessor(BackupObjectProcessor) :
-    """MySql backup object processor."""
-
-    def __init__(self, work_object, backup_processor):
-        super(BackupObjectMySqlProcessor, self).__init__(work_object, backup_processor)
-
-    def process(self):
-        os.makedirs(self.target_folder, exist_ok=True)
-
-        targetFilePath = os.path.join(target_folder, self.work_object.target_file_name)
-        args = ["mysqldump", "--lock-tables"]
-        args += ["--opt", "--skip-extended-insert"] #disable extended (bulk) inserts
-        args += ["--user={0}".format(self.work_object.user)]
-        args += ["--password={0}".format(self.work_object.password)]
-        if (self.work_object.port) :
-            args.append("--port={0}".format(self.work_object.port))
-
-        args.append("{0}".format(self.work_object.database))
-
-        try :
-            self.reporter.info("Backing up MySql database '{0}'...".format(self.work_object.database))
-            with open(targetFilePath, "w") as targetFile:
-                subprocess.check_call(args, stdout=targetFile)
-            self.reporter.info("Database backup complete.")
-
-        except subprocess.CalledProcessError as ex :
-            raise Exception("MySQL backup for database '{0}' failed with exit code {1}.".format(
-                self.work_object.database, ex.returncode))
-
-
-
-class BackupObjectSvnProcessor(BackupObjectProcessor) :
-    """Subversion repository backup object processor."""
-           
-    def __init__(self, work_object, backup_processor):       
-        super(BackupObjectSvnProcessor, self).__init__(work_object, backup_processor)
-
-    def process(self):
-        target_folder = os.path.join(self.backup_processor.last_backup_dir, self.work_object.target_subfolder)
-
-        args = ["svnadmin", "hotcopy",
-                "{0}".format(self.work_object.repository_folder),
-                "{0}".format(target_folder)]
-
-        try :
-            self.reporter.info("Backing up Subversion repository '{0}'...".format(self.work_object.repository_folder))
-            subprocess.check_call(args)
-            self.reporter.info("Subversion repository backup complete.")
-            
-        except subprocess.CalledProcessError as ex :
-            raise Exception("Subversion backup for repository folder '{0}' failed with exit code {1}.".format(
-                self.work_object.repository_folder, ex.returncode))
-
-
 @work_object_processor_class(BackupObjectFile)
 class BackupObjectFileProcessor(BackupObjectProcessor) :
     """File backup object processor."""
-           
-    def __init__(self, work_object, backup_processor):       
+
+    def __init__(self, work_object, backup_processor):
         super(BackupObjectFileProcessor, self).__init__(work_object, backup_processor)
 
     def process(self):
@@ -101,18 +50,18 @@ class BackupObjectFileProcessor(BackupObjectProcessor) :
         target_file_name = self.work_object.target_file_name
         if not target_file_name:
             target_file_name = os.path.basename(src_file)
-               
+
         self.reporter.info("Copying file '{0}' to '{1}'...".format(src_file, target_file_name))
         target_file = os.path.join(self.target_folder, target_file_name)
         shutil.copyfile(src_file, target_file)
         self.reporter.info("Done")
-        
+
 
 @work_object_processor_class(BackupObjectFolder)
 class BackupObjectFolderProcessor(BackupObjectProcessor) :
     """Folder backup object processor."""
-           
-    def __init__(self, work_object, backup_processor):       
+
+    def __init__(self, work_object, backup_processor):
         super(BackupObjectFolderProcessor, self).__init__(work_object, backup_processor)
 
     def process(self):
@@ -121,7 +70,69 @@ class BackupObjectFolderProcessor(BackupObjectProcessor) :
         src_folder = self.work_object.src_folder_path
         if not os.path.isdir(src_folder):
             raise Exception("Source folder '{0}' does not exist!".format(src_folder))
-              
+
         self.reporter.info("Copying folder '{0}' to '{1}'...".format(src_folder, self.target_folder))
         shutil.copytree(src_folder, self.target_folder)
         self.reporter.info("Done")
+
+
+@work_object_processor_class(BackupObjectMySql)
+class BackupObjectMySqlProcessor(BackupObjectProcessor) :
+    """MySql backup object processor."""
+
+    def __init__(self, work_object, backup_processor):
+        super(BackupObjectMySqlProcessor, self).__init__(work_object, backup_processor)
+
+    def process(self):
+        self.ensure_target_folder_exists()
+        target_file_path = os.path.join(self.target_folder, self.work_object.target_file_name)
+
+        try:
+            self.reporter.info("Backing up MySql database '{0}'...".format(self.work_object.database))
+
+            kwargs = {
+                'user': self.work_object.user,
+                'password': self.work_object.password,
+                '_out': target_file_path
+            }
+            if self.work_object.host is not None:
+                kwargs['host'] = self.work_object.host
+            if self.work_object.port is not None:
+                kwargs['port'] = self.work_object.port
+
+            # noinspection PyUnresolvedReferences
+            sh.mysqldump(self.work_object.database, '--lock-tables', '--opt', '--skip-extended-insert', **kwargs)
+
+            self.reporter.info("Database backup complete.")
+
+        except sh.ErrorReturnCode as ex:
+            raise Exception("MySQL backup for database '{0}' failed: {1}"
+                            .format(self.work_object.database, ex.message))
+        except Exception as ex:
+            raise Exception("MySQL backup for database '{0}' failed: {1}"
+                            .format(self.work_object.database, repr(ex)))
+
+
+@work_object_processor_class(BackupObjectSvn)
+class BackupObjectSvnProcessor(BackupObjectProcessor):
+    """Subversion repository backup object processor."""
+           
+    def __init__(self, work_object, backup_processor):       
+        super(BackupObjectSvnProcessor, self).__init__(work_object, backup_processor)
+
+    def process(self):
+        self.ensure_target_folder_does_not_exist()
+
+        try:
+            self.reporter.info("Backing up Subversion repository '{0}'...".format(self.work_object.repository_folder))
+            # noinspection PyUnresolvedReferences
+            sh.svnadmin('hotcopy', self.work_object.repository_folder, self.target_folder)
+            self.reporter.info("Subversion repository backup complete.")
+            
+        except sh.ErrorReturnCode as ex:
+            raise Exception("Subversion backup for repository folder '{0}' failed: {1}".format(
+                self.work_object.repository_folder, ex.message))
+        except subprocess.CalledProcessError as ex:
+            raise Exception("Subversion backup for repository folder '{0}' failed: {1}".format(
+                self.work_object.repository_folder, repr(ex)))
+
