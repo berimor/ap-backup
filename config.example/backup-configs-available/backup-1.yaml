@@ -1,0 +1,134 @@
+#------------------------------------------------------------------------------
+# This file provides a backup configuration example. 
+#
+# Multiple files like this can be placed into the backup configs folder. 
+# The file name defines the backup name.
+#------------------------------------------------------------------------------
+
+
+# Backup type. Supported values are:
+# - archive : backup to a ZIP archive.
+#             For ap-backup : backups all backup objects, creates a ZIP archive, copies
+#                             it to all outdated destinations
+#             For ab-backup-checker : checks whether all backups are up-to-date
+# - checker : supported by ab-backup-checker only. Checks given checker configurations. For
+#             examples on checker configurations see APBackupChecker module. 
+backup_type: archive
+
+# Folder where backup and status files will be created. The backup files will then be copied
+# to the corresponding destination folder.
+#
+# Default is "/var/lib/ap-backup/{backup_name}".
+data_folder: /var/lib/ap-backup/{backup_name}
+
+#------------------------------------------------------------------------------
+# Backup destinations with schedules.
+#
+# The following one or more sections must start with "Destination_". They define 
+# the locations where the backup archive is copied to and how often this happens. 
+# Backup archive will only be created if at least one of the destinations must be 
+# updated.
+# 
+# Every section can contain following settings:
+# 
+# - folder : path to the folder to copy backups to.
+# - num_copies : maximum number of copies to maintain (old copies will be deleted then)
+# - schedule : cron-formatted schedule
+#
+#------------------------------------------------------------------------------
+
+destinations:
+
+    - name: daily
+      folder: /tmp/backup/my-backup/daily
+      num_copies: 14
+      schedule: 0 1 * * *
+
+    - name: weekly
+      folder: /tmp/backup/my-backup/weekly
+      num_copies: 50
+      schedule: 0 2 * * 1
+
+
+#------------------------------------------------------------------------------
+# Backup objects. 
+#
+# The following one or more sections must start with "Backup_[object-type]_". They define 
+# the objects to back up. Depending on the object type, different settings are available,
+# they are described for every section below.
+#
+# Common settings for all object types:
+#
+# target_subfolder : subfolder of the backup folder where this object will be backed up
+#
+#------------------------------------------------------------------------------
+
+objects:
+
+    #------------------------------------------------------------------------------
+    # File object example.
+    #
+    # Every file backup object section must start with "Backup_File_". It defines
+    # a single file backup. Following settings are available:
+    #
+    # - Common settings for all object types (see above).
+    # - SrcFilePath : path to the file to back up
+    # - target_file_name : name of the target file (optional, source file name is used by default)
+    #------------------------------------------------------------------------------
+    - type: file
+      target_subfolder: files
+      src_file_path: /Users/alex/ap-projects/ap-backup/APBackup.log
+      target_file_name: my-file.txt
+
+
+    #------------------------------------------------------------------------------
+    # Folder object example.
+    #
+    # Every folder backup object section must start with "Backup_Folder_". It defines
+    # a (deep) folder backup. Following settings are available:
+    #
+    # - Common settings for all object types (see above).
+    # - SrcFolderPath : path to the folder to back up
+    #------------------------------------------------------------------------------
+    - type: folder
+      target_subfolder: ap-backup
+      src_folder_path: /Users/alex/ap-projects/ap-backup
+
+
+    #------------------------------------------------------------------------------
+    # MySQL backup object example.
+    #
+    # Every MySQL backup object section must start with "Backup_MySql_". It defines a MySQL
+    # database backup. Following settings are available:
+    #
+    # - Common settings for all object types (see above).
+    # - target_file_name : target file name
+    # - database : database name
+    # - user : user name
+    # - password : user password
+    # - host : database host (optional)
+    # - port : database port (optional)
+    #
+    #------------------------------------------------------------------------------
+    - type: mysql
+      target_subfolder: wiki
+      target_file_name: aphome_wiki.sql
+      host: apserver
+      database: aphome_wiki
+      user: root
+      password: Ba3xFpNy
+
+
+    #------------------------------------------------------------------------------
+    # SVN repository object example.
+    #
+    # Every SVN repository backup object section must start with "Backup_Svn_". It defines an
+    # SVN repository backup. Following settings are available:
+    #
+    # - Common settings for all object types (see above).
+    # - RepositoryFolder : repository folder to back up
+    #
+    #------------------------------------------------------------------------------
+    - type: svn
+      target_subfolder: svn/rep1
+      repository_folder: /projects/my-project/svn-repository
