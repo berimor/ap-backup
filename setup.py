@@ -45,5 +45,5 @@ setup( name='ap-backup'
                    , 'Programming Language :: Python :: Implementation :: PyPy'
                    ,
                    ]
-     , scripts=[ 'scripts/ap-backup', 'scripts/ap-backup-checker', 'scripts/ap-multicopy' ]
+     , scripts=[ 'scripts/ap-backup-upgrade', 'scripts/ap-backup', 'scripts/ap-backup-checker', 'scripts/ap-multicopy' ]
      )

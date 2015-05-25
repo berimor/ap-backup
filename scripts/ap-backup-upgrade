@@ -1,0 +1,4 @@
+#!/bin/bash
+
+pip install -e git+https://github.com/berimor/ap-utils.git@master#egg=ap-utils
+pip install -e git+https://github.com/berimor/ap-backup.git@master#egg=ap-backup
