@@ -25,8 +25,13 @@ class BackupObjectProcessor(object):
             os.makedirs(self.target_folder)
 
     def ensure_target_folder_does_not_exist(self):
+        """Ensures that the parent of the target folder exists, but the target folder does not."""
         if os.path.exists(self.target_folder):
             raise Exception("Target folder '{0}' already exists, please select another folder.")
+
+        parent_folder = os.path.dirname(self.target_folder)
+        if not os.path.isdir(parent_folder):
+            os.makedirs(parent_folder)
 
     @abstractmethod
     def process(self):
