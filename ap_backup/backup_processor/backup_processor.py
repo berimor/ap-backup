@@ -8,11 +8,16 @@ from shutil import rmtree
 from ap_backup.multicopy import multicopy
 
 from .backup_status import BackupStatus
-from .work_object_processor_manager import work_object_processor_manager
+from .backup_object_processor_manager import backup_object_processor_manager
 
-# Import all work object processor classes, this will register them in work_object_processor_manager
+# Import all work object processor classes, this will register them in backup_object_processor_manager
 # noinspection PyUnresolvedReferences
-from .work_object_processors import BackupObjectProcessor
+from .backup_object_processors import \
+    BackupObjectProcessor, \
+    BackupObjectFileProcessor, \
+    BackupObjectFolderProcessor, \
+    BackupObjectMySqlProcessor, \
+    BackupObjectSvnProcessor
 
 
 class BackupProcessor(object):
@@ -130,10 +135,10 @@ class BackupProcessor(object):
     def _process_objects(self):
 
         #create backup object processors
-        for work_object in self.backup_config.work_objects:
-            object_processor = work_object_processor_manager.create_processor(work_object, self)
+        for backup_object in self.backup_config.backup_objects:
+            object_processor = backup_object_processor_manager.create_processor(backup_object, self)
             if not object_processor:
-                raise Exception("Unsupported backup object type '{0}'.".format(type(work_object).__name__))
+                raise Exception("Unsupported backup object type '{0}'.".format(type(backup_object).__name__))
 
             object_processor.process()
 

@@ -2,7 +2,7 @@ import sys
 import argparse
 
 from ap_backup import AppConfig
-from ap_backup.backup_checker import BackupChecker
+from ap_backup.check_processor import CheckProcessor
 from ap_backup.reporter import Reporter
 
 __author__ = 'Alexander Pikovsky'
@@ -40,7 +40,7 @@ def backup_checker_main():
         failed_configs = 0
         for backup_config in app_config.backup_configs:
             try:
-                checker = BackupChecker(app_config, backup_config, reporter)
+                checker = CheckProcessor(app_config, backup_config, reporter)
                 up_to_date = checker.check()
                 if up_to_date:
                     up_to_date_configs += 1
@@ -63,7 +63,7 @@ def backup_checker_main():
             sys.exit(1)
 
     except Exception as ex:
-        reporter.critical("Backup checker failed: {0}".format(str(ex)), exc_info=True)
+        reporter.critical("Backup checker FAILED: {0}".format(str(ex)), exc_info=True)
         sys.exit(2)
 
 

@@ -2,8 +2,9 @@ import sys
 import argparse
 
 from ap_backup.config import AppConfig
+from ap_backup.config.backup_config import BackupConfig
 from ap_backup.reporter import Reporter
-from ap_backup.processor import BackupProcessor
+from ap_backup.backup_processor import BackupProcessor
 
 __author__ = 'Alexander Pikovsky'
 
@@ -41,6 +42,9 @@ def backup_main():
         up_to_date_configs = 0
         failed_configs = 0
         for backup_config in app_config.backup_configs:
+            if backup_config.backup_type == BackupConfig.BACKUP_TYPE_CHECKER:
+                continue
+
             try:
                 backup_processor = BackupProcessor(app_config, backup_config, reporter)
                 updated_destinations = backup_processor.process()

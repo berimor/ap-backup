@@ -2,7 +2,7 @@ from os import path
 from ap_utils.yaml_processor import YamlProcessor
 
 from .backup_objects import BackupObject
-from .backup_check_objects import BackupCheckObject
+from .check_objects import CheckObject
 from .work_object_manager import work_object_manager
 
 
@@ -42,8 +42,8 @@ class BackupConfig:
         # dict: destination_name -> BackupDestination
         self.destination_by_name = None
 
-        #list of backup work objects (derived from BackupObject or BackupCheckObject)
-        self.work_objects = None
+        #list of backup work objects (derived from BackupObject or CheckObject)
+        self.backup_objects = None
 
         self._read_config(backup_config_file)
 
@@ -72,20 +72,20 @@ class BackupConfig:
         for object_section in main_section.get_optional_list('destinations'):
             self.destination_by_name[object_section.name] = BackupDestination(object_section)
 
-        self.work_objects = []
+        self.backup_objects = []
         for object_section in main_section.get_list('objects'):
-            self.work_objects.append(self._read_work_object(object_section, backup_config_file))
+            self.backup_objects.append(self._read_backup_object(object_section, backup_config_file))
 
-    def _read_work_object(self, object_section, backup_config_file):
+    def _read_backup_object(self, object_section, backup_config_file):
         object_type = object_section.type
-        work_object = work_object_manager.create_object(object_section)
-        if not work_object:
+        backup_object = work_object_manager.create_object(object_section)
+        if not backup_object:
             raise Exception("Unsupported backup object type '{0}' in configuration file '{1}'."
                             .format(object_type, backup_config_file))
 
-        if (self.backup_type == self.BACKUP_TYPE_ARCHIVE and not isinstance(work_object, BackupObject)) or \
-           (self.backup_type == self.BACKUP_TYPE_CHECKER and not isinstance(work_object, BackupCheckObject)):
+        if (self.backup_type == self.BACKUP_TYPE_ARCHIVE and not isinstance(backup_object, BackupObject)) or \
+           (self.backup_type == self.BACKUP_TYPE_CHECKER and not isinstance(backup_object, CheckObject)):
             raise Exception("Object type '{0}' is not supported for backup type '{1}' in configuration file '{2}'."
                             .format(object_type, self.backup_type, backup_config_file))
 
-        return work_object
+        return backup_object
