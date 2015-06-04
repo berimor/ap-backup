@@ -6,73 +6,11 @@ Created on 14.06.2012
 import os
 import datetime
 import logging.config
-import sys
 
-import apgeneral.os
-import aploggers.loggers
-import apbackup.config
 import glob
-from apbackup import config
-
-def runChecker(backupCheckerDir) : 
-    """Main backup method.
-       
-       backupCheckerDir : directory containing the backup checker configuration.
-    """
-
-    packageDir = os.path.dirname(os.path.realpath(__file__))
-    
-    logging.config.fileConfig(os.path.join(packageDir, "logging.conf"))
-    LOG = aploggers.loggers.LogMessages(packageDir)
-    logger = logging.getLogger('backup_checker_summary')
-          
-    #execute main program
-    try:
-        #read config file
-        config = apbackup.config.Config(backupCheckerDir)
-    
-        #complete
-        logger.info(LOG.Msg("BackupCheckerStarted", backupCheckerDir))
-    
-        #connect network shares
-        for rns in config.requiredNetworkShares :
-            apgeneral.os.connectNetworkShare(rns.driveName, rns.uncPath)
-        
-        #process backup configs, don't abort if some of them fail
-        upToDateConfigs = 0
-        failedConfigs = 0
-        for backup_config in config.backup_configs :
-            try :
-                backupChecker = BackupChecker(backup_config, config)
-                upToDate = backupChecker.check()
-                if (upToDate) :
-                    upToDateConfigs += 1 
-                else :
-                    failedConfigs += 1
-            
-            except Exception as ex:
-                logger.critical(LOG.Msg("BackupCheckerException", backup_config.name, str(ex)), exc_info=True)
-                failedConfigs += 1
-    
-        #complete
-        if (failedConfigs == 0) :
-            logger.info(LOG.Msg("BackupCheckerComplete", backupCheckerDir, upToDateConfigs))
-        else :
-            logger.error(LOG.Msg("BackupCheckerCompleteWithFailures", backupCheckerDir, failedConfigs, upToDateConfigs))
-    
-    except Exception as ex:
-        logger.critical(LOG.Msg("UnexpectedException", str(ex)), exc_info=True)
-        sys.exit(1)
-        
-    finally:
-        #disconnect network shares
-        for rns in config.requiredNetworkShares :
-            apgeneral.os.disconnectNetworkShare(rns.driveName)
 
 
-
-
-class BackupChecker :
+class BackupChecker:
     """Processes the given backup configuration (makes backup)."""
        
     logger = logging.getLogger('backup_checker_protocol')
@@ -80,16 +18,17 @@ class BackupChecker :
     backup_config = None
     config = None
     
-    def __init__(self, backup_config, config):
-        self.config = config
+    def __init__(self, app_config, backup_config, reporter):
+        self.app_config = app_config
         self.backup_config = backup_config
-        
-        
+        self.reporter = reporter.reporter(logger_name='protocol')
+
     def check(self) :
         """Checks the given backup configuration (checks whether all backups are up-to-date).
            Returns True if all up-to-date."""
         
-        self.logger.info("Checking backup '{0}'...".format(self.backup_config.name))
+        self.reporter.info("Checking backup '{0}'".format(self.backup_config.name))
+        return True
 
         #distinguish by backup type
         if (self.backup_config.backupType == config.backupType_Archive) :
