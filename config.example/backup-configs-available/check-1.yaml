@@ -1,77 +1,61 @@
-;------------------------------------------------------------------------------
-; This file provides a backup checker configuration example. 
-;
-; Multiple files like this can be placed into the backup configs folder. 
-; The file name defines the backup name.
-;------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+# This file provides a backup checker configuration example.
+#
+# Multiple files like this can be placed into the backup configs folder.
+# The file name defines the backup name.
+#------------------------------------------------------------------------------
 
 
-;------------------------------------------------------------------------------
-; General section.
-;------------------------------------------------------------------------------
-[General]
+# Backup type. Supported values are:
+# - checker: checks whether all objects are up-to-date
+backup_type: checker
 
-; Backup type. Supported values are:
-; - Archive : backup to a ZIP archive.
-;             For APbackup : backups all backup objects, creates a ZIP archive, copies 
-;                            it to all outdated destinations
-;             For ABbackupChecker : checks whether all backups are up-to-date
-; - Checker : supported by ABbackupChecker only. Checks given checker configurations. For 
-;             examples on checker configurations see APBackupChecker module. 
-BackupType=Checker
-
-;Number of days ignored by the backup checker. Only relevant for backup checker configs.
-;Optional, default is 2.
-CheckerAccuracyDays = 5
+# Number of days ignored by the backup checker (backup is considered ok, if it is not older than
+# the last scheduled backup time minus this number of days).
+#
+# Optional. Default is 2.
+checker_accuracy_days: 2
 
 
-;------------------------------------------------------------------------------
-; Backup checker objects. 
-;
-; The following one or more sections must start with "BackupCheck_[object-type]_". They define 
-; the objects to check. Depending on the object type, different settings are available,
-; they are described for every section below.
-;
-;------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+# Backup checker objects.
+#
+# Backup checker objects define the objects to check. Depending on the object type,
+# different settings are available, they are described for every section below.
+#
+# Common settings for all object types:
+#
+# - schedule: cron-formatted schedule, defines the (expected) backup schedule
+#             of the given backup
+#------------------------------------------------------------------------------
 
+objects:
 
-;------------------------------------------------------------------------------
-; RecentFileExists checker object example. 
-;
-; Checks that the given folder contains at least one recent enough file with 
-; the given pattern. Every RecentFileExists checker section must start with 
-; "BackupCheck_RecentFileExists_". Following settings are available:
-;
-; - BackupFolder : folder to check files in
-; - BackupFileNamePattern : pattern of files to look for
-; - ScheduleType and ScheduleFrequency : as in backup destination configurations; define
-;       the (expected) backup schedule of the given backup. Used to check whether 
-;       a recent enough file exists.
-;
-;------------------------------------------------------------------------------
-[BackupCheck_RecentFileExists_1]
-BackupFolder=D:\Backups\KeyWallet\Daily
-BackupFileNamePattern=Backup1_*.zip
-ScheduleType=Daily
-ScheduleFrequency=1
+    #------------------------------------------------------------------------------
+    # recent_file_exists object checks that the given folder contains at least one
+    # recent enough file with the given pattern.
+    #
+    # Following settings are available:
+    # - common settings for all object types (see above)
+    # - backup_folder: folder to check files in
+    # - backup_file_name_pattern: pattern of files to look for
+    #------------------------------------------------------------------------------
+    - type: recent_file_exists
+      schedule: 0 10 * * *
+      backup_folder: /tmp/backup/my-backup/daily
+      backup_file_name_pattern: '*.zip'
 
-
-;------------------------------------------------------------------------------
-; CompareFileToSrc checker object example. 
-;
-; Checks that the given backup file date is the same as the given src file date, 
-; or that it recent enough due to the defined backup schedule.
-;
-; Following settings are available:
-;
-; - BackupFile : path to the backup file to check
-; - SrcFile : path to the source file (to compare dates)
-; - ScheduleType and ScheduleFrequency : as in backup destination configurations; define
-;       the (expected) backup schedule of the given backup.
-;
-;------------------------------------------------------------------------------
-[BackupCheck_CompareFileToSrc_1]
-BackupFile=U:\Auto Backup\QNAP\AP Home Shared - Replica\Application Data\Quicken\INESSASHKA.QDF
-SrcFile=K:\Application Data\Quicken\INESSASHKA.QDF
-ScheduleType=Daily
-ScheduleFrequency=1
+    #------------------------------------------------------------------------------
+    # compare_file_to_src object checks that the given backup file date is the same
+    # as the given src file date, or that it recent enough due to the defined backup
+    # schedule.
+    #
+    # Following settings are available:
+    # - common settings for all object types (see above)
+    # - backup_file: path to the backup file to check
+    # - src_file: path to the source file (to compare dates)
+    #------------------------------------------------------------------------------
+    - type: compare_file_to_src
+      schedule: 0 5 * * *
+      backup_file: /tmp/backup/my-backup/daily/backup-1_2015-06-05_08-26.zip
+      src_file: /Users/alex/ap-projects/ap-backup/APBackup.log

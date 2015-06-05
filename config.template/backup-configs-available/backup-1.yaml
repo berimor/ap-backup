@@ -19,6 +19,12 @@ backup_type: archive
 # Optional. Default is "/var/lib/ap-backup/{backup_name}".
 data_folder: /var/lib/ap-backup/{backup_name}
 
+# Number of days ignored by the backup checker (backup is considered ok, if it is not older than
+# the last scheduled backup time minus this number of days).
+#
+# Optional. Default is 2.
+checker_accuracy_days: 2
+
 #------------------------------------------------------------------------------
 # Backup destinations with schedules.
 #

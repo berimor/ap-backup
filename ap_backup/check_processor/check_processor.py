@@ -1,5 +1,3 @@
-import logging.config
-
 from ap_backup.config.backup_config import BackupConfig
 
 from .check_object_processor_manager import check_object_processor_manager
@@ -16,11 +14,6 @@ from .check_object_processors import \
 class CheckProcessor:
     """Processes the given backup configuration (makes backup)."""
        
-    logger = logging.getLogger('backup_checker_protocol')
-
-    backup_config = None
-    config = None
-    
     def __init__(self, app_config, backup_config, reporter):
         self.app_config = app_config
         self.backup_config = backup_config
@@ -30,7 +23,7 @@ class CheckProcessor:
         """Checks the given backup configuration (checks whether all backups are up-to-date).
            Returns True if all up-to-date."""
         
-        self.reporter.info("Checking backup '{0}'".format(self.backup_config.name))
+        self.reporter.info("Checking backup '{0}'...".format(self.backup_config.name))
 
         if self.backup_config.backup_type == BackupConfig.BACKUP_TYPE_ARCHIVE:
             return self.check_archive_config()
@@ -40,16 +33,18 @@ class CheckProcessor:
             raise Exception("Unsupported backup type '{0}' in backup '{1}'"
                             .format(self.backup_config.backup_type, self.backup_config.name))
                   
-        return True
-
     def check_archive_config(self):
         for destination in self.backup_config.destination_by_name.values():
-            if (not check_recent_file_exists(destination.folder, self.backup_config.name + "*.zip",
-                                             destination.scheduleMinutes, self.backup_config, self.reporter)):
+            if (not check_recent_file_exists(destination.folder,
+                                             self.backup_config.name + "_*.zip",
+                                             destination.schedule,
+                                             self.backup_config.checker_accuracy_days,
+                                             self.reporter)):
                 return False
 
         self.reporter.info("Backup '{0}' checked: {1} destinations up-to-date."
                            .format(self.backup_config.name, len(self.backup_config.destination_by_name)))
+        return True
 
     def check_checker_config(self):
         for check_object in self.backup_config.backup_objects:
@@ -63,3 +58,4 @@ class CheckProcessor:
 
         self.reporter.info("Backup '{0}' checked: {1} objects up-to-date."
                            .format(self.backup_config.name, len(self.backup_config.backup_objects)))
+        return True
